@@ -9,22 +9,23 @@ if %errorlevel% neq 0 (
         echo Failed to download ADB. Exiting...
         pause
         exit /b 1
+    ) else (
+        echo ADB downloaded successfully. Restarting the script...
+        timeout /t 2 >nul
+        start cmd /c "%~dpnx0"
+        exit
     )
 )
 
-:: Continue with the current script
-set /p device_name="Enter the device name: "
+:: List connected devices and let the user choose
+echo Listing connected devices...
+adb devices
 
-:: Connect to ADB
-adb connect %device_name%
+:: Prompt the user to choose a device
+set /p device_name="Enter the index of the device you want to set: "
 
-:: Check if connection is successful
-adb devices | findstr /C:"%device_name%"
-if %errorlevel% neq 0 (
-    echo Failed to connect to %device_name%
-    pause
-    exit /b 1
-)
+:: Execute commands in ADB Shell
+adb -s %device_name% shell busybox hwclock -w
+adb -s %device_name% shell date
 
-:: Enter ADB Shell, execute the command, and exit
-adb -s %device_name% shell busybox hwclock -w && adb -s %device_name% shell exit
+pause
